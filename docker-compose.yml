@@ -14,6 +14,8 @@ services:
     ports:
       - 80:80
       - 8080:8080
+    networks:
+      - kafka_network
     volumes:
       -   /var/run/docker.sock:/var/run/docker.sock:ro
 
@@ -21,15 +23,19 @@ services:
     image: bitnami/zookeeper:latest
     ports:
       - 2181:2181
+    networks:
+      - kafka_network
     environment:
       ALLOW_ANONYMOUS_LOGIN: 'yes'
 
   kafka:
-    image: bitnami/kafka:latest
+    image: bitnami/kafka:3.3.1
     ports:
       - 9092
     deploy:
       replicas: 3
+    networks:
+      - kafka_network
     environment:
       ALLOW_PLAINTEXT_LISTENER: 'yes'
       KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -45,9 +51,14 @@ services:
       SERVER_SERVLET_CONTEXTPATH: /
     expose:
       - 9000
+    networks:
+      - kafka_network
     labels:
       - traefik.enable=true
       - traefik.http.routers.kafdrop.rule=Host(`kafdrop.localhost`)
       - traefik.http.routers.kafdrop.entrypoints=web
     depends_on:
       - kafka
+networks:
+  kafka_network:
+    name: kafka_test_network
