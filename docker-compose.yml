@@ -29,7 +29,7 @@ services:
       ALLOW_ANONYMOUS_LOGIN: 'yes'
 
   kafka:
-    image: bitnami/kafka:3.3.1
+    image: bitnami/kafka:latest
     ports:
       - 9092
     deploy:
@@ -42,6 +42,25 @@ services:
       KAFKA_CFG_NUM_PARTITIONS: 4
     depends_on:
       - zookeeper
+
+  kafka-init:
+    image: bitnami/kafka:latest
+    networks:
+      - kafka_network
+    command: [ "/bin/bash", "-c", "/topics.sh" ]
+    environment:
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zookeeper:2181
+    depends_on:
+      kafka:
+        condition: service_started
+    volumes:
+      - type: bind
+        source: ./topics.sh
+        target: /topics.sh
+      - type: bind
+        source: ./topics.txt
+        target: /topics.txt
+    init: true
 
   kafdrop:
     image: obsidiandynamics/kafdrop
